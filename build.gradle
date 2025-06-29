@@ -36,8 +36,21 @@ task compileDb4o(type: Exec) {
 	                   "-Djavac.target.version=" + targetCompatibility
 }
 
+task showFredVersion {
+	doLast {
+		URL[] classpath = sourceSets.main.runtimeClasspath.files.collect { it.toURL() } as URL[]
+		def cl = new URLClassLoader(classpath)
+		def cls = Class.forName("freenet.node.Version", true, cl)
+		def publicVersion = cls.getMethod("publicVersion").invoke(null)
+		def buildNumber = cls.getMethod("buildNumber").invoke(null)
+		def cvsRevision = cls.getMethod("cvsRevision").invoke(null)
+		println("Using Fred version " + publicVersion + " build #" + buildNumber + " (" + cvsRevision + ")")
+	}
+}
+
 compileJava {
 	dependsOn 'compileDb4o'
+	dependsOn 'showFredVersion'
 }
 
 task prepareVersionFile(type: Copy) {
